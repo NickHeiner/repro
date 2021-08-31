@@ -1,6 +1,8 @@
 const Piscina = require('piscina');
 const yargs = require('yargs');
 const createLog = require('nth-log').default;
+const fs = require('fs');
+const path = require('path');
 require('hard-rejection/register');
 
 const {argv} = yargs.options({
@@ -19,19 +21,20 @@ const {argv} = yargs.options({
 })
 
 const log = createLog({name: 'piscina-perf-parent'});
+const generatedDirPath = path.resolve(__dirname, '__generated__');
 
-async function doBigCompute() {
+async function spawnAndUsePool() {
   const piscina = new Piscina({
     filename: require.resolve('./worker'),
     argv: [],
-    workerData: {}
+    workerData: {generatedDirPath}
   });
   
   const runPromises = [];
   
   log.logPhase({phase: 'enqueing tasks', taskCount: argv.taskCount, level: 'info'}, () => {
     for (let i = 0; i < argv.taskCount; i++) {
-      runPromises.push(piscina.run());
+      runPromises.push(piscina.run(i));
     }
   })
 
@@ -43,8 +46,10 @@ async function doBigCompute() {
 }
 
 async function main() {
+  await fs.promises.rm(generatedDirPath, {force: true, recursive: true})
+  await fs.promises.mkdir(generatedDirPath);
   for (let i = 0; i < argv.poolIterations; i++) {
-    await log.logPhase({phase: 'big compute', iteration: i, level: 'info'}, doBigCompute);  
+    await log.logPhase({phase: 'spawning and using the pool', iteration: i, level: 'info'}, spawnAndUsePool);  
   }
 }
 
