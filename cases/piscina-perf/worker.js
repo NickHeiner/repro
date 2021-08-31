@@ -15,10 +15,13 @@ function generateRandomString(length) {
 
 module.exports = async function(taskId) {
   return log.logPhase({taskId, phase: 'worker', level: 'debug'}, async () => {
+    const filePath = path.join(piscina.workerData.generatedDirPath, `${taskId}.txt`);
     await fs.promises.writeFile(
-      path.join(piscina.workerData.generatedDirPath, `${taskId}.txt`), 
-      generateRandomString(500)
+      filePath, 
+      generateRandomString(1000)
     );
+
+    await fs.promises.readFile(filePath, 'utf8');
   })
   // const iterationLimit = 5 * (10 ** 9);
   // log.logPhase({phase: 'empty for loop', iterationLimit, level: 'info'}, () => {

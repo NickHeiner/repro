@@ -1,6 +1,8 @@
 const Piscina = require('piscina');
 const yargs = require('yargs');
 const createLog = require('nth-log').default;
+const prettyMs = require('pretty-ms');
+const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
 require('hard-rejection/register');
@@ -31,11 +33,29 @@ async function spawnAndUsePool() {
   });
   
   const runPromises = [];
-  
+
+  const enqueueStartTimeMs = Date.now();
+  const logTimeToFirstReturn = _.once(() => {
+    const timeToChangeFirstFile = Date.now() - enqueueStartTimeMs;
+    log.info({
+      durationMs: timeToChangeFirstFile,
+      durationMsPretty: prettyMs(timeToChangeFirstFile)
+    }, 'The first codemod worker to return has done so.');
+  });
   log.logPhase({phase: 'enqueing tasks', taskCount: argv.taskCount, level: 'info'}, () => {
     for (let i = 0; i < argv.taskCount; i++) {
-      runPromises.push(piscina.run(i));
+      runPromises.push(new Promise(async resolve => {
+        await piscina.run(i);
+        logTimeToFirstReturn();
+        resolve();
+      }));
     }
+  })
+
+  // I observe completed = 9975, even when I pass 10,000 tasks. I'm not sure why that is. I see that 10k tasks actually
+  // executed.
+  piscina.on('drain', () => {
+    log.info(_.pick(piscina, 'runTime', 'waitTime', 'duration', 'completed', 'utilization'), 'Piscina pool drained.');
   })
 
   await log.logPhase({phase: 'waiting for tasks to complete', level: 'info', }, () => Promise.all(runPromises));
