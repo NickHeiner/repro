@@ -10,8 +10,10 @@ module.exports = async function(taskId) {
       babel.loadOptions({
         filename: String(taskId),
 
+        // Average time to first task completed: ~30s.
         // presets: [['babel-preset-tvui', { modules: false, appName: '' }]],
-
+        
+        // Average time to first task completed: ~10s.
         presets: ['@tvui/babel-preset-react'],
         cwd: '/Users/nheiner/code/tvui/'
       });
@@ -21,8 +23,3 @@ module.exports = async function(taskId) {
     }
   });
 }
-
-/dev/urandom perl -CO -ne '
-    BEGIN{$/=\4}
-    no warnings "utf8";
-    print chr(unpack("L>",$_) & 0x7fffffff)'
