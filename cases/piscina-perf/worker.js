@@ -25,7 +25,6 @@ module.exports = async function(filePath) {
         presets: [['babel-preset-tvui', { modules: false, appName: '' }]],
         cwd: '/Users/nheiner/code/tvui/'
       });
-      await fs.promises.writeFile(`${filePath}.built`, compiled.code);
     } catch (e) {
       log.info({e}, 'Worker threw error');
     }
