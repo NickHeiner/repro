@@ -4,39 +4,45 @@ const yargs = require('yargs');
 const createLog = require('nth-log').default;
 const prettyMs = require('pretty-ms');
 const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
-const globby = require('globby');
 require('hard-rejection/register');
 
 const {argv} = yargs.options({
   poolIterations: {
+    alias: 'i',
     type: 'number',
     default: 4
   },
   taskCount: {
+    alias: 'c',
     type: 'number',
     default: 10_000
   },
   destroyBetweenRuns: {
+    alias: 'd',
     type: 'boolean',
     default: true
+  },
+  workerType: {
+    alias: 'w',
+    type: 'string',
+    choices: ['shell', 'babel', 'bigRequire'],
+    default: 'shell'
   }
 })
 
 const log = createLog({name: 'piscina-perf-parent'});
-const generatedDirPath = path.resolve(__dirname, '__generated__');
-
-const inputFilePaths = globby.sync('packages/**/*.js', {dot: true, gitignore: true, cwd: '/Users/nheiner/code/tvui/', absolute: true});
-
-// log.info({inputFilePaths: inputFilePaths.slice(0, 10)});
-// return;
 
 async function spawnAndUsePool() {
+  const workerFileName = {
+    shell: './worker-shell',
+    babel: './worker-babel',
+    bigRequire: './worker-big-require',
+  }
+
   const piscina = new Piscina({
-    filename: require.resolve('./worker'),
+    filename: require.resolve(workerFileName[argv.workerType]),
     argv: [],
-    workerData: {generatedDirPath}
+    workerData: {}
   });
   
   const runPromises = [];
@@ -54,16 +60,14 @@ async function spawnAndUsePool() {
   });
   performance.mark(perfMarkStart);
   log.logPhase({phase: 'enqueing tasks', level: 'info'}, (_logProgress, setAdditionalLogData) => {
-    // for (let i = 0; i < argv.taskCount; i++) {
-    for (const inputFilePath of inputFilePaths) {
+    for (let i = 0; i < argv.taskCount; i++) {
       runPromises.push(new Promise(async resolve => {
-        await piscina.runTask(inputFilePath);
+        await piscina.run(i);
         logTimeToFirstReturn();
         resolve();
       }));
       setAdditionalLogData({taskCount: runPromises.length});
     }
-    // }
   })
 
   // I observe completed = 9975, even when I pass 10,000 tasks. I'm not sure why that is. I see that 10k tasks actually
@@ -80,8 +84,6 @@ async function spawnAndUsePool() {
 }
 
 async function main() {
-  await fs.promises.rm(generatedDirPath, {force: true, recursive: true})
-  await fs.promises.mkdir(generatedDirPath);
   for (let i = 0; i < argv.poolIterations; i++) {
     await log.logPhase({phase: 'spawning and using the pool', iteration: i, level: 'info'}, spawnAndUsePool);  
   }
