@@ -1,3 +1,4 @@
+const { performance } = require('perf_hooks');
 const Piscina = require('piscina');
 const yargs = require('yargs');
 const createLog = require('nth-log').default;
@@ -40,14 +41,18 @@ async function spawnAndUsePool() {
   
   const runPromises = [];
 
+  const perfMarkStart = 'start enqueing tasks';
+
   const enqueueStartTimeMs = Date.now();
   const logTimeToFirstReturn = _.once(() => {
     const timeToChangeFirstFile = Date.now() - enqueueStartTimeMs;
+    performance.measure('Time to first worker completion', perfMarkStart);
     log.info({
       durationMs: timeToChangeFirstFile,
       durationMsPretty: prettyMs(timeToChangeFirstFile)
     }, 'The first codemod worker to return has done so.');
   });
+  performance.mark(perfMarkStart);
   log.logPhase({phase: 'enqueing tasks', level: 'info'}, (_logProgress, setAdditionalLogData) => {
     // for (let i = 0; i < argv.taskCount; i++) {
     for (const inputFilePath of inputFilePaths) {
