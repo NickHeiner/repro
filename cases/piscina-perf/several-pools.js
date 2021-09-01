@@ -52,7 +52,7 @@ async function spawnAndUsePool() {
     // for (let i = 0; i < argv.taskCount; i++) {
     for (const inputFilePath of inputFilePaths) {
       runPromises.push(new Promise(async resolve => {
-        await piscina.run(inputFilePath);
+        await piscina.runTask(inputFilePath);
         logTimeToFirstReturn();
         resolve();
       }));
