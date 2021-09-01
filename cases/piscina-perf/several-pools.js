@@ -5,6 +5,7 @@ const prettyMs = require('pretty-ms');
 const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
+const globby = require('globby');
 require('hard-rejection/register');
 
 const {argv} = yargs.options({
@@ -25,6 +26,11 @@ const {argv} = yargs.options({
 const log = createLog({name: 'piscina-perf-parent'});
 const generatedDirPath = path.resolve(__dirname, '__generated__');
 
+const inputFilePaths = globby.sync('packages/**/*.js', {dot: true, gitignore: true, cwd: '/Users/nheiner/code/tvui/', absolute: true});
+
+// log.info({inputFilePaths: inputFilePaths.slice(0, 10)});
+// return;
+
 async function spawnAndUsePool() {
   const piscina = new Piscina({
     filename: require.resolve('./worker'),
@@ -42,14 +48,17 @@ async function spawnAndUsePool() {
       durationMsPretty: prettyMs(timeToChangeFirstFile)
     }, 'The first codemod worker to return has done so.');
   });
-  log.logPhase({phase: 'enqueing tasks', taskCount: argv.taskCount, level: 'info'}, () => {
-    for (let i = 0; i < argv.taskCount; i++) {
+  log.logPhase({phase: 'enqueing tasks', level: 'info'}, (_logProgress, setAdditionalLogData) => {
+    // for (let i = 0; i < argv.taskCount; i++) {
+    for (const inputFilePath of inputFilePaths) {
       runPromises.push(new Promise(async resolve => {
-        await piscina.run(i);
+        await piscina.run(inputFilePath);
         logTimeToFirstReturn();
         resolve();
       }));
+      setAdditionalLogData({taskCont: runPromises.length});
     }
+    // }
   })
 
   // I observe completed = 9975, even when I pass 10,000 tasks. I'm not sure why that is. I see that 10k tasks actually

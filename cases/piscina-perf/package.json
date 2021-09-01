@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@babel/core": "7.15.0",
+    "@babel/preset-env": "7.15.0",
+    "@babel/preset-react": "7.14.5",
     "hard-rejection": "2.1.0",
     "lodash": "4.17.21",
     "nth-log": "2.0.2",
