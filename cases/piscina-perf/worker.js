@@ -1,3 +1,4 @@
+require('recast');
 const createLog = require('nth-log').default;
 const fs = require('fs');
 // const path = require('path');
