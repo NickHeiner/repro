@@ -56,7 +56,7 @@ async function spawnAndUsePool() {
         logTimeToFirstReturn();
         resolve();
       }));
-      setAdditionalLogData({taskCont: runPromises.length});
+      setAdditionalLogData({taskCount: runPromises.length});
     }
     // }
   })

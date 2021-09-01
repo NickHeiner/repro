@@ -18,11 +18,17 @@ const log = createLog({name: 'piscina-perf-worker'});
 
 module.exports = async function(filePath) {
   return log.logPhase({filePath, phase: 'worker', level: 'debug'}, async () => {
-    const fileContents = await fs.promises.readFile(filePath, 'utf8');
-    const compiled = babel.transformSync(fileContents, {
-      presets: ['@babel/preset-env', '@babel/preset-react']
-    });
-    await fs.promises.writeFile(`${filePath}.built`, compiled.code);
+    try {
+      const fileContents = await fs.promises.readFile(filePath, 'utf8');
+      const compiled = babel.transformSync(fileContents, {
+        filename: filePath,
+        presets: [['babel-preset-tvui', { modules: false, appName: '' }]],
+        cwd: '/Users/nheiner/code/tvui/'
+      });
+      await fs.promises.writeFile(`${filePath}.built`, compiled.code);
+    } catch (e) {
+      log.info({e}, 'Worker threw error');
+    }
   //   const filePath = path.join(piscina.workerData.generatedDirPath, `${taskId}.txt`);
   //   await fs.promises.writeFile(
   //     filePath, 
