@@ -1,54 +1,72 @@
+const { performance } = require('perf_hooks');
 const Piscina = require('piscina');
 const yargs = require('yargs');
 const createLog = require('nth-log').default;
 const prettyMs = require('pretty-ms');
 const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
 require('hard-rejection/register');
 
 const {argv} = yargs.options({
   poolIterations: {
+    alias: 'i',
     type: 'number',
     default: 4
   },
   taskCount: {
+    alias: 'c',
     type: 'number',
     default: 10_000
   },
   destroyBetweenRuns: {
+    alias: 'd',
     type: 'boolean',
     default: true
+  },
+  workerType: {
+    alias: 'w',
+    type: 'string',
+    choices: ['shell', 'babel', 'bigRequire'],
+    default: 'shell'
   }
 })
 
 const log = createLog({name: 'piscina-perf-parent'});
-const generatedDirPath = path.resolve(__dirname, '__generated__');
 
 async function spawnAndUsePool() {
+  const workerFileName = {
+    shell: './worker-shell',
+    babel: './worker-babel',
+    bigRequire: './worker-big-require',
+  }
+
   const piscina = new Piscina({
-    filename: require.resolve('./worker'),
+    filename: require.resolve(workerFileName[argv.workerType]),
     argv: [],
-    workerData: {generatedDirPath}
+    workerData: {}
   });
   
   const runPromises = [];
 
+  const perfMarkStart = 'start enqueing tasks';
+
   const enqueueStartTimeMs = Date.now();
   const logTimeToFirstReturn = _.once(() => {
     const timeToChangeFirstFile = Date.now() - enqueueStartTimeMs;
+    performance.measure('Time to first worker completion', perfMarkStart);
     log.info({
       durationMs: timeToChangeFirstFile,
       durationMsPretty: prettyMs(timeToChangeFirstFile)
     }, 'The first codemod worker to return has done so.');
   });
-  log.logPhase({phase: 'enqueing tasks', taskCount: argv.taskCount, level: 'info'}, () => {
+  performance.mark(perfMarkStart);
+  log.logPhase({phase: 'enqueing tasks', level: 'info'}, (_logProgress, setAdditionalLogData) => {
     for (let i = 0; i < argv.taskCount; i++) {
       runPromises.push(new Promise(async resolve => {
         await piscina.run(i);
         logTimeToFirstReturn();
         resolve();
       }));
+      setAdditionalLogData({taskCount: runPromises.length});
     }
   })
 
@@ -66,8 +84,6 @@ async function spawnAndUsePool() {
 }
 
 async function main() {
-  await fs.promises.rm(generatedDirPath, {force: true, recursive: true})
-  await fs.promises.mkdir(generatedDirPath);
   for (let i = 0; i < argv.poolIterations; i++) {
     await log.logPhase({phase: 'spawning and using the pool', iteration: i, level: 'info'}, spawnAndUsePool);  
   }

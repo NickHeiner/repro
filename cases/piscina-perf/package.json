@@ -3,11 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@babel/core": "7.15.0",
+    "@babel/preset-env": "7.15.0",
+    "@babel/preset-react": "7.14.5",
+    "@babel/preset-typescript": "7.15.0",
+    "execa": "5.1.1",
+    "git-root": "1.0.0",
     "hard-rejection": "2.1.0",
     "lodash": "4.17.21",
     "nth-log": "2.0.2",
     "piscina": "3.1.0",
     "pretty-ms": "7.0.1",
+    "recast": "0.20.4",
     "yargs": "17.1.1"
   }
 }
