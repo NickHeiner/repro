@@ -1,0 +1,11 @@
+{
+  "name": "ts-global-this",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "typescript": "4.4.4"
+  },
+  "scripts": {
+    "test": "tsc -p ."
+  }
+}

@@ -3196,6 +3196,11 @@ typescript@4.3.5:
   resolved "https://artifacts.netflix.net/api/npm/npm-netflix/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
   integrity sha1-TRw3zBbok5c8RaBohrcRMjTxGfQ=
 
+typescript@4.4.4:
+  version "4.4.4"
+  resolved "https://artifacts.netflix.net/api/npm/npm-netflix/typescript/-/typescript-4.4.4.tgz#2cd01a1a1f160704d3101fd5a58ff0f9fcb8030c"
+  integrity sha1-LNAaGh8WBwTTEB/VpY/w+fy4Aww=
+
 unbox-primitive@^1.0.1:
   version "1.0.1"
   resolved "https://artifacts.netflix.net/api/npm/npm-netflix/unbox-primitive/-/unbox-primitive-1.0.1.tgz#085e215625ec3162574dc8859abee78a59b14471"
