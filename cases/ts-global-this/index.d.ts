@@ -1,5 +1,6 @@
-declare const console: any;
+export {};
 
 declare global {
-  const myCustomGlobalThisEntry: string;
+  const console: any;
+  var myCustomGlobalThisEntry: string;
 }
