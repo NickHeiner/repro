@@ -1,0 +1,11 @@
+{
+  "name": "ts-1193",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "tsc -p ."
+  },
+  "dependencies": {
+    "typescript": "4.6.2"
+  }
+}
